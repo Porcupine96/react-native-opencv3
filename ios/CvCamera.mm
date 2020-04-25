@@ -199,20 +199,15 @@ static CvVideoCamera *videoCamera;
     return (distX + distY);
 }
 
-- (NSString*)eyeJSON:(cv::Mat&)image face:(cv::Rect)face eye:(cv::Rect)eye {
-    int x0 = face.x + eye.x;
-    int y0 = face.y + eye.y;
-    int x1 = x0 + eye.width;
-    int y1 = y0 + eye.height;
-
+- (NSString*)eyeJSON:(cv::Mat&)image tl:(cv::Point)tl br:(cv::Point)br {
     int channels = image.channels();
     int nCols = image.cols * channels;
 
     NSMutableString *json = [NSMutableString new];
     [json appendString:@"["];
-    for(int i = x0; i < x1; i++) {
+    for(int i = tl.x; i < br.x; i++) {
         [json appendString:@"["];
-        for(int j = y0; j < y1; j++) {
+        for(int j = tl.y; j < br.y; j++) {
             int p = i * nCols + (j * channels);
             [json appendString:@"["];
             for(int k = 0; k < channels; k++) {
@@ -223,12 +218,12 @@ static CvVideoCamera *videoCamera;
                 }
             }
             [json appendString:@"]"];
-            if (j < y1 - 1) {
+            if (j < br.y - 1) {
                 [json appendString:@","];
             }
         }
         [json appendString:@"]"];
-        if (i < x1 - 1) {
+        if (i < br.x - 1) {
             [json appendString:@","];
         }
     }
@@ -321,7 +316,15 @@ static CvVideoCamera *videoCamera;
                             NSString *firstEyeJSON = [self getPartJSON:dFace partKey:@"firstEye" part:eyes[eye1Index] widthToUse:dFace.cols heightToUse:dFace.rows];
                             payloadJSON = [payloadJSON stringByAppendingString:firstEyeJSON];
 
-                            NSString * firstEyeDataJSON = [self eyeJSON:image_copy face:faces[i] eye:eyes[0]];
+                            cv::Point firstEyeTl, firstEyeBr;
+                            firstEyeTl.x = faces[i].tl().x + eyes[0].tl().x;
+                            firstEyeTl.y = faces[i].tl().y + eyes[0].tl().y;
+                            firstEyeBr.x = firstEyeTl.x + eyes[0].width;
+                            firstEyeBr.y = firstEyeTl.y + eyes[0].height;
+
+                            rectangle(image_copy, firstEyeTl, firstEyeBr, Scalar(0, 255, 0), 3);
+
+                            NSString * firstEyeDataJSON = [self eyeJSON:image_copy tl:firstEyeTl br:firstEyeBr];
                             payloadJSON = [payloadJSON stringByAppendingString:@",\"firstEyeData\":"];
                             payloadJSON = [payloadJSON stringByAppendingString:firstEyeDataJSON];
                         }
@@ -341,24 +344,17 @@ static CvVideoCamera *videoCamera;
                             NSString *secondEyeJSON = [self getPartJSON:dFace partKey:@"secondEye" part:eyes[eye2Index] widthToUse:dFace.cols heightToUse:dFace.rows];
                             payloadJSON = [payloadJSON stringByAppendingString:secondEyeJSON];
 
-                            NSString * secondEyeDataJSON = [self eyeJSON:image_copy face:faces[i] eye:eyes[1]];
-                            payloadJSON = [payloadJSON stringByAppendingString:@",\"secondEyeData\":"];
-                            payloadJSON = [payloadJSON stringByAppendingString:secondEyeDataJSON];
-
-                            cv::Point firstEyeTl, firstEyeBr;
-                            firstEyeTl.x = faces[i].tl().x + eyes[0].tl().x;
-                            firstEyeTl.y = faces[i].tl().y + eyes[0].tl().y;
-                            firstEyeBr.x = firstEyeTl.x + eyes[0].width;
-                            firstEyeBr.y = firstEyeTl.y + eyes[0].height;
-
                             cv::Point secondEyeTl, secondEyeBr;
                             secondEyeTl.x = faces[i].tl().x + eyes[1].tl().x;
                             secondEyeTl.y = faces[i].tl().y + eyes[1].tl().y;
                             secondEyeBr.x = secondEyeTl.x + eyes[1].width;
                             secondEyeBr.y = secondEyeTl.y + eyes[1].height;
 
-                            rectangle(image_copy, firstEyeTl, firstEyeBr, Scalar(0, 255, 0), 3);
                             rectangle(image_copy, secondEyeTl, secondEyeBr, Scalar(0, 255, 0), 3);
+
+                            NSString * secondEyeDataJSON = [self eyeJSON:image_copy tl:secondEyeTl br:secondEyeBr];
+                            payloadJSON = [payloadJSON stringByAppendingString:@",\"secondEyeData\":"];
+                            payloadJSON = [payloadJSON stringByAppendingString:secondEyeDataJSON];
                         }
                     }
 
