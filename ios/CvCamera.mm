@@ -203,7 +203,7 @@ static CvVideoCamera *videoCamera;
     int x0 = face.x + eye.x;
     int y0 = face.y + eye.y;
     int x1 = x0 + eye.width;
-    int y1 = y0 + eye.width;
+    int y1 = y0 + eye.height;
 
     int channels = image.channels();
     int nCols = image.cols * channels;
@@ -344,6 +344,21 @@ static CvVideoCamera *videoCamera;
                             NSString * secondEyeDataJSON = [self eyeJSON:image_copy face:faces[i] eye:eyes[1]];
                             payloadJSON = [payloadJSON stringByAppendingString:@",\"secondEyeData\":"];
                             payloadJSON = [payloadJSON stringByAppendingString:secondEyeDataJSON];
+
+                            cv::Point firstEyeTl, firstEyeBr;
+                            firstEyeTl.x = faces[i].tl().x + eyes[0].tl().x;
+                            firstEyeTl.y = faces[i].tl().y + eyes[0].tl().y;
+                            firstEyeBr.x = firstEyeTl.x + eyes[0].width;
+                            firstEyeBr.y = firstEyeTl.y + eyes[0].height;
+
+                            cv::Point secondEyeTl, secondEyeBr;
+                            secondEyeTl.x = faces[i].tl().x + eyes[1].tl().x;
+                            secondEyeTl.y = faces[i].tl().y + eyes[1].tl().y;
+                            secondEyeBr.x = secondEyeTl.x + eyes[1].width;
+                            secondEyeBr.y = secondEyeTl.y + eyes[1].height;
+
+                            rectangle(image_copy, firstEyeTl, firstEyeBr, Scalar(0, 255, 0), 3);
+                            rectangle(image_copy, secondEyeTl, secondEyeBr, Scalar(0, 255, 0), 3);
                         }
                     }
 
@@ -435,7 +450,7 @@ static CvVideoCamera *videoCamera;
                 else {
                     payloadJSON = [payloadJSON stringByAppendingString:@"}"];
                 }
-                //rectangle(image_copy, faces[i].tl(), faces[i].br(), Scalar( 255, 255, 0 ), 3);
+                rectangle(image_copy, faces[i].tl(), faces[i].br(), Scalar( 255, 255, 0 ), 3);
             }
             payloadJSON = [payloadJSON stringByAppendingString:@"]}"];
         }
