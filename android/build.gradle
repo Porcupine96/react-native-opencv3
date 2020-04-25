@@ -3,10 +3,15 @@ buildscript {
         mavenCentral()
         google()
         jcenter()
+
+    maven {
+        // All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
+        url "$rootDir/../node_modules/react-native/android"
+        }
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.6.1'
+        classpath 'com.android.tools.build:gradle:3.6.2'
     }
 }
 
@@ -30,10 +35,17 @@ repositories {
     mavenCentral()
     jcenter()
     google()
+    maven {
+        // All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
+        url "$rootDir/../node_modules/react-native/android"
+        }
 }
 
 dependencies {
     implementation 'com.facebook.react:react-native:+'
     // opencv 3.4.4 with contribution packages
-    implementation 'com.quickbirdstudios:opencv:3.4.4-contrib'
+    implementation 'com.quickbirdstudios:opencv:4.1.0-contrib'
+    // implementation 'com.quickbirdstudios:opencv:3.4.4-contrib'
+
+    // implementation 'com.android.support:appcompat-v7:28.0.0'
 }
