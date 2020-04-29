@@ -199,31 +199,35 @@ static CvVideoCamera *videoCamera;
     return (distX + distY);
 }
 
-- (NSString*)eyeJSON:(cv::Mat&)image tl:(cv::Point)tl br:(cv::Point)br {
-    int channels = image.channels();
-    int nCols = image.cols * channels;
+- (NSString*)eyeJSON:(cv::Mat&)mat {
+    cv::Mat rect = mat.clone();
+
+    int channels = rect.channels();
+    int nCols = rect.cols * channels;
+
+    RCTLog(@"Is continuous %i", rect.isContinuous());
 
     NSMutableString *json = [NSMutableString new];
     [json appendString:@"["];
-    for(int i = tl.x; i < br.x; i++) {
+    for(int i = 0; i < rect.rows; i++) {
         [json appendString:@"["];
-        for(int j = tl.y; j < br.y; j++) {
+        for(int j = 0; j < rect.cols; j++) {
             int p = i * nCols + (j * channels);
             [json appendString:@"["];
             for(int k = 0; k < channels; k++) {
-                NSString* pixel = [NSString stringWithFormat:@"%i", image.data[p + k]];
+                NSString* pixel = [NSString stringWithFormat:@"%i", rect.data[p + k]];
                 [json appendString:pixel];
                 if (k < channels - 1) {
                     [json appendString:@","];
                 }
             }
             [json appendString:@"]"];
-            if (j < br.y - 1) {
+            if (j < rect.cols - 1) {
                 [json appendString:@","];
             }
         }
         [json appendString:@"]"];
-        if (i < br.x - 1) {
+        if (i < rect.rows - 1) {
             [json appendString:@","];
         }
     }
@@ -322,11 +326,41 @@ static CvVideoCamera *videoCamera;
                             firstEyeBr.x = firstEyeTl.x + eyes[0].width;
                             firstEyeBr.y = firstEyeTl.y + eyes[0].height;
 
-                            rectangle(image_copy, firstEyeTl, firstEyeBr, Scalar(0, 255, 0), 3);
+                            cv::Rect2d rect = cv::Rect2d();
+                            rect.x = firstEyeTl.x;
+                            rect.y = firstEyeTl.y;
+                            rect.width = eyes[0].width;
+                            rect.height = eyes[0].height;
 
-                            NSString * firstEyeDataJSON = [self eyeJSON:image_copy tl:firstEyeTl br:firstEyeBr];
+                            cv::Mat eyeRect = image_copy(rect);
+
+//                            int r = arc4random_uniform(1000000);
+//                            NSString* relPath =  [NSString stringWithFormat:@"~/Documents/ala-%i.png", r];
+//                            NSString* outPath = [relPath stringByExpandingTildeInPath];
+
+//                            UIImage *destImage = MatToUIImage(eyeRect);
+//
+//                            NSData* data = UIImagePNGRepresentation(destImage);
+//
+//                            NSError* error;
+//                            BOOL result = [data writeToFile:outPath options:NSDataWritingAtomic error:&error];
+//
+//                            RCTLog(@"Writting to %@", outPath);
+//                            RCTLog(@"File write result: %i", result);
+//
+//                            if (error != nil) {
+//                                RCTLog(@"Write error %@", error);
+//                            }
+
+//                            NSString * firstEyeDataJSON = [self eyeJSON:image_copy tl:firstEyeTl br:firstEyeBr];
+//                            payloadJSON = [payloadJSON stringByAppendingString:@",\"firstEyeData\":"];
+//                            payloadJSON = [payloadJSON stringByAppendingString:firstEyeDataJSON];
+
+                            NSString * firstEyeDataJSON = [self eyeJSON:eyeRect];
                             payloadJSON = [payloadJSON stringByAppendingString:@",\"firstEyeData\":"];
                             payloadJSON = [payloadJSON stringByAppendingString:firstEyeDataJSON];
+
+                            rectangle(image_copy, firstEyeTl, firstEyeBr, Scalar(0, 255, 0), 3);
                         }
                         if (eyes.size() > 1) {
                             CGFloat minDist = 10000.0f;
@@ -350,11 +384,19 @@ static CvVideoCamera *videoCamera;
                             secondEyeBr.x = secondEyeTl.x + eyes[1].width;
                             secondEyeBr.y = secondEyeTl.y + eyes[1].height;
 
-                            rectangle(image_copy, secondEyeTl, secondEyeBr, Scalar(0, 255, 0), 3);
+                            cv::Rect2d rect = cv::Rect2d();
+                            rect.x = secondEyeTl.x;
+                            rect.y = secondEyeTl.y;
+                            rect.width = eyes[0].width;
+                            rect.height = eyes[0].height;
 
-                            NSString * secondEyeDataJSON = [self eyeJSON:image_copy tl:secondEyeTl br:secondEyeBr];
+                            cv::Mat eyeRect = image_copy(rect);
+
+                            NSString * secondEyeDataJSON = [self eyeJSON:eyeRect];
                             payloadJSON = [payloadJSON stringByAppendingString:@",\"secondEyeData\":"];
                             payloadJSON = [payloadJSON stringByAppendingString:secondEyeDataJSON];
+
+                            rectangle(image_copy, secondEyeTl, secondEyeBr, Scalar(0, 255, 0), 3);
                         }
                     }
 
