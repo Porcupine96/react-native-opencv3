@@ -428,7 +428,7 @@ public class CvCameraView extends JavaCameraView implements CvCameraViewListener
 
 
     @SuppressLint("DefaultLocale")
-    private String gerRectContentJSON(Mat image, Rect face, Rect eye) {
+    private String eyeJSON(Mat image, Rect face, Rect eye) {
 
         StringBuffer sb = new StringBuffer();
 
@@ -606,7 +606,8 @@ public class CvCameraView extends JavaCameraView implements CvCameraViewListener
                                     }
                                 }
                                 sb.append(getPartJSON(dFace, "firstEye", eyesArray[eye1Index]));
-                                // TODO:bcm  here we have eyes
+                                final String firstEyeDataJSON = eyeJSON(dFace,facesArray[i],eyesArray[0]); // TODO: bcm - check if ok
+                                sb.append(",\"firstEyeData\":").append(firstEyeDataJSON);
                             }
                             if (eyesArray.length > 1) {
                                 double minDist = 10000.0;
@@ -622,6 +623,8 @@ public class CvCameraView extends JavaCameraView implements CvCameraViewListener
                                     }
                                 }
                                 sb.append(getPartJSON(dFace, "secondEye", eyesArray[eye2Index]));
+                                final String secondEyeDataJson = eyeJSON(dFace,facesArray[i],eyesArray[1]); // TODO: bcm - check if ok
+                                sb.append(",\"secondEyeData\":").append(secondEyeDataJson);
                             }
                         }
 
