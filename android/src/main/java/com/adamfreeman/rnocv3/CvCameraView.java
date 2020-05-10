@@ -597,25 +597,11 @@ public class CvCameraView extends JavaCameraView implements CvCameraViewListener
                                     int eyeX = Double.valueOf(facesArray[i].tl().x + eyesArray[0].tl().x).intValue();
                                     int eyeY = Double.valueOf(facesArray[i].tl().y + eyesArray[0].tl().y).intValue();
 
-//                                    firstEyeBr.x = firstEyeTl.x + eyesArray[0].width;
-//                                    firstEyeBr.y = firstEyeTl.y + eyesArray[0].height;
-
                                     Rect rect = new Rect(eyeX,eyeY, eyesArray[0].width,eyesArray[0].height);
-//                                    Rect2d rect = new Rect2d();
-//                                    rect.x = firstEyeTl.x;
-//                                    rect.y = firstEyeTl.y;
-//                                    rect.width = eyesArray[0].width;
-//                                    rect.height = eyesArray[0].height;
-
                                     Mat eyeRect = in.submat(rect);
-
-
                                     firstEyeDataJSON =  eyeJSONV2(eyeRect);
-
-//                                    firstEyeDataJSON =  eyeJSONV1(dFace,facesArray[i],eyesArray[0]); // TODO: bcm - check if ok
-
                                 } catch (Exception e) {
-                                    Log.e("ReactNative", "fucked up", e);
+                                    Log.e("ReactNative", "cutting first eye failed up", e);
                                     firstEyeDataJSON = "[]";
                                 }
 //                                final String firstEyeDataJSON = "[]";
@@ -635,9 +621,38 @@ public class CvCameraView extends JavaCameraView implements CvCameraViewListener
                                     }
                                 }
                                 sb.append(getPartJSON(dFace, "secondEye", eyesArray[eye2Index]));
-//                                final String secondEyeDataJson =  eyeJSON(dFace,facesArray[i],eyesArray[1]); // TODO: bcm - check if ok
-                                final String secondEyeDataJson = "[]";
+                                String secondEyeDataJson = null;
+                                try {
+//                                    Point firstEyeTl = new Point(), firstEyeBr = new Point();
+                                    int eyeX = Double.valueOf(facesArray[i].tl().x + eyesArray[1].tl().x).intValue();
+                                    int eyeY = Double.valueOf(facesArray[i].tl().y + eyesArray[1].tl().y).intValue();
+
+                                    Rect rect = new Rect(eyeX,eyeY, eyesArray[0].width,eyesArray[1].height);
+                                    Mat eyeRect = in.submat(rect);
+                                    secondEyeDataJson =  eyeJSONV2(eyeRect);
+                                } catch (Exception e) {
+                                    Log.e("ReactNative", "cutting first eye failed up", e);
+                                    secondEyeDataJson = "[]";
+                                }
+
                                 sb.append(",\"secondEyeData\":").append(secondEyeDataJson);
+
+
+                                Point firstEyeTl = new Point(), firstEyeBr = new Point();
+                                firstEyeTl.x = facesArray[i].tl().x + eyesArray[0].tl().x;
+                                firstEyeTl.y = facesArray[i].tl().y + eyesArray[0].tl().y;
+                                firstEyeBr.x = firstEyeTl.x + eyesArray[0].width;
+                                firstEyeBr.y = firstEyeTl.y + eyesArray[0].height;
+
+                                Point secondEyeTl = new Point(), secondEyeBr = new Point();
+                                secondEyeTl.x = facesArray[i].tl().x + eyesArray[1].tl().x;
+                                secondEyeTl.y = facesArray[i].tl().y + eyesArray[1].tl().y;
+                                secondEyeBr.x = secondEyeTl.x + eyesArray[1].width;
+                                secondEyeBr.y = secondEyeTl.y + eyesArray[1].height;
+
+                                Imgproc.rectangle(in,firstEyeTl,firstEyeBr,new Scalar(0,255,0),3);
+                                Imgproc.rectangle(in,secondEyeTl,secondEyeBr,new Scalar(0,255,0),3);
+
                             }
                         }
 
@@ -727,6 +742,8 @@ public class CvCameraView extends JavaCameraView implements CvCameraViewListener
                     } else {
                         sb.append("}");
                     }
+
+                    Imgproc.rectangle(in,facesArray[i].tl(),facesArray[i].br(),new Scalar(0,255,0),3);
                 }
                 sb.append("]}");
                 faceInfo = sb.toString();
