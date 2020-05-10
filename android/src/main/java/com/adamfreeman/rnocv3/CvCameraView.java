@@ -18,7 +18,6 @@ import android.view.SurfaceHolder;
 import android.view.TextureView;
 import android.util.Base64;
 import android.view.OrientationEventListener;
-import android.util.Log;
 
 import androidx.core.content.ContextCompat;
 
@@ -47,13 +46,8 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.File;
 import java.lang.Runnable;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 
 enum whichOne {
     FACE_CLASSIFIER,
@@ -427,51 +421,41 @@ public class CvCameraView extends JavaCameraView implements CvCameraViewListener
     }
 
 
-    @SuppressLint("DefaultLocale")
-    private String eyeJSON(Mat image, Rect face, Rect eye) {
+
+    private String eyeJSONV2(Mat eye) {
+        System.out.println("INSIDE FUCKER");
+
 
         StringBuffer sb = new StringBuffer();
 
-        int x0 = face.x + eye.x;
-        int y0 = face.y + eye.y;
-        int x1 = x0 + eye.width;
-        int y1 = y0 + eye.width;
-
-        int channels = image.channels();
-        int nCols = image.cols() * channels;
 
         sb.append("[");
-        for (int x = x0; x < x1; x++) {
+        for (int x = 0; x < eye.cols(); x++) {
 
             sb.append("[");
 
-            for (int y = y0; y < y1; y++) {
+            for (int y = 0; y < eye.rows(); y++) {
 //                 int  p = x * nCols + y * channels;
-
-                double[] pixels = image.get(x, y);
-
+//
+//                double[] pixels = image.get(y, x);
+                double[] pixels = eye.get(x, y);
+//                Log.d("ReactNative", "Pixel:" + Arrays.toString(pixels));
                 sb.append("[")
                         .append(pixels[0]).append(",")
                         .append(pixels[1]).append(",")
                         .append(pixels[2]).append("]");
-                if (pixels.length != 3) {
-                    System.out.println(String.format("Pixels length %d", pixels.length));
-                }
+//                if (pixels.length != 3) {
+//                    Log.d("ReactNative", String.format("Pixels length %d", pixels.length));
+//                }
 
-                if (y < y1 - 1) {
+                if (y < eye.rows() - 1) {
                     sb.append(",");
                 } else {
                     sb.append("]");
                 }
-
-//                 for (int channel = 0; channel < channels ;channel++){
-//                     // TODO:bcm
-//                     image.g
-//                 }
             }
 
-
-            if (x < x1 - 1) {
+            if (x < eye.cols() - 1) {
                 sb.append(",");
             } else {
                 sb.append("]");
@@ -606,7 +590,35 @@ public class CvCameraView extends JavaCameraView implements CvCameraViewListener
                                     }
                                 }
                                 sb.append(getPartJSON(dFace, "firstEye", eyesArray[eye1Index]));
-                                final String firstEyeDataJSON = eyeJSON(dFace,facesArray[i],eyesArray[0]); // TODO: bcm - check if ok
+                                String firstEyeDataJSON = null;
+                                try {
+
+//                                    Point firstEyeTl = new Point(), firstEyeBr = new Point();
+                                    int eyeX = Double.valueOf(facesArray[i].tl().x + eyesArray[0].tl().x).intValue();
+                                    int eyeY = Double.valueOf(facesArray[i].tl().y + eyesArray[0].tl().y).intValue();
+
+//                                    firstEyeBr.x = firstEyeTl.x + eyesArray[0].width;
+//                                    firstEyeBr.y = firstEyeTl.y + eyesArray[0].height;
+
+                                    Rect rect = new Rect(eyeX,eyeY, eyesArray[0].width,eyesArray[0].height);
+//                                    Rect2d rect = new Rect2d();
+//                                    rect.x = firstEyeTl.x;
+//                                    rect.y = firstEyeTl.y;
+//                                    rect.width = eyesArray[0].width;
+//                                    rect.height = eyesArray[0].height;
+
+                                    Mat eyeRect = in.submat(rect);
+
+
+                                    firstEyeDataJSON =  eyeJSONV2(eyeRect);
+
+//                                    firstEyeDataJSON =  eyeJSONV1(dFace,facesArray[i],eyesArray[0]); // TODO: bcm - check if ok
+
+                                } catch (Exception e) {
+                                    Log.e("ReactNative", "fucked up", e);
+                                    firstEyeDataJSON = "[]";
+                                }
+//                                final String firstEyeDataJSON = "[]";
                                 sb.append(",\"firstEyeData\":").append(firstEyeDataJSON);
                             }
                             if (eyesArray.length > 1) {
@@ -623,7 +635,8 @@ public class CvCameraView extends JavaCameraView implements CvCameraViewListener
                                     }
                                 }
                                 sb.append(getPartJSON(dFace, "secondEye", eyesArray[eye2Index]));
-                                final String secondEyeDataJson = eyeJSON(dFace,facesArray[i],eyesArray[1]); // TODO: bcm - check if ok
+//                                final String secondEyeDataJson =  eyeJSON(dFace,facesArray[i],eyesArray[1]); // TODO: bcm - check if ok
+                                final String secondEyeDataJson = "[]";
                                 sb.append(",\"secondEyeData\":").append(secondEyeDataJson);
                             }
                         }
