@@ -493,8 +493,8 @@ static CvVideoCamera *videoCamera;
             payloadJSON = [payloadJSON stringByAppendingString:@"]}"];
         }
 
-        if (self && self.onFacesDetected) {
-            self.onFacesDetected(@{@"payload":payloadJSON});
+        if (self && self.onFacesDetectedCv) {
+            self.onFacesDetectedCv(@{@"payload":payloadJSON});
         }
     }
     dispatch_async(dispatch_get_main_queue(), ^{
