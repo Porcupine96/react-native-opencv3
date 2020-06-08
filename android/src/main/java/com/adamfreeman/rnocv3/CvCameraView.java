@@ -23,7 +23,6 @@ import androidx.core.content.ContextCompat;
 
 import org.opencv.videoio.VideoWriter;
 import org.opencv.android.Utils;
-import org.opencv.android.JavaCameraView;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfRect;
 import org.opencv.core.MatOfPoint2f;
@@ -126,7 +125,7 @@ class InitCameraBlock implements Runnable {
     }
 }
 
-public class CvCameraView extends JavaCameraView implements CvCameraViewListener2 {
+public class CvCameraView extends PortraitJavaCameraView implements CvCameraViewListener2 {
 
     private static final String TAG = CvCameraView.class.getSimpleName();
 

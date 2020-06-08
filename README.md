@@ -472,3 +472,6 @@ Thanks to @jackychanfox and @jslok for contributing.
 2. Pop Art: https://apps.apple.com/us/app/pop-art/id299466474
 
 
+
+---
+https://answers.opencv.org/question/7313/rotating-android-camera-to-portrait/
